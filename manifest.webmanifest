@@ -1,0 +1,12 @@
+{
+  "name": "AthletiClinic Demo",
+  "short_name": "AthletiClinic",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#111a24",
+  "description": "דמו אינטראקטיבי של AthletiClinic"
+}
