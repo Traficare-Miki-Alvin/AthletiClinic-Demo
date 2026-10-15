@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111a24">
+<title>אתלטיק קליניק - דמו</title>
+<style>html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827}.loading{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center}.box{background:white;border:1px solid #e6e9ee;border-radius:18px;padding:28px;max-width:440px;box-shadow:0 10px 32px rgba(24,39,58,.08)}.spin{width:34px;height:34px;border:4px solid #eee;border-top-color:#ff5a1f;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}@keyframes s{to{transform:rotate(360deg)}}button{border:0;border-radius:10px;padding:10px 16px;background:#ff5a1f;color:#fff;font-weight:800}</style>
+</head>
+<body><div class="loading"><div class="box"><div class="spin"></div><h2>טוען את AthletiClinic</h2><p>הדמו נטען...</p><div id="err"></div></div></div>
+<script>
+(async()=>{
+ const files=["./chunks/part-01.txt", "./chunks/part-02.txt", "./chunks/part-03.txt", "./chunks/part-04.txt", "./chunks/part-05.txt", "./chunks/part-06.txt", "./chunks/part-07.txt", "./chunks/part-08.txt", "./chunks/part-09.txt"];
+ try{
+   const res=await Promise.all(files.map(f=>fetch(f,{cache:'no-store'})));
+   for(const r of res) if(!r.ok) throw new Error('HTTP '+r.status);
+   const parts=await Promise.all(res.map(r=>r.text()));
+   const html=parts.join('');
+   document.open(); document.write(html); document.close();
+ }catch(e){
+   document.querySelector('#err').innerHTML='<p style="color:#b42318">לא ניתן היה לטעון את הדמו.</p><button onclick="location.reload()">נסה שוב</button>';
+   console.error(e);
+ }
+})();
+</script></body></html>
