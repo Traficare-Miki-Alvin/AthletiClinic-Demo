@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>AthletiClinic</title>
 <style>
-html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .loading{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;box-sizing:border-box}.box{background:#fff;border:1px solid #e6e9ee;border-radius:18px;padding:28px;max-width:440px;width:100%;box-sizing:border-box;box-shadow:0 10px 32px rgba(24,39,58,.08)}.spin{width:34px;height:34px;border:4px solid #eee;border-top-color:#f15a2b;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}@keyframes s{to{transform:rotate(360deg)}}button{border:0;border-radius:10px;padding:11px 18px;background:#f15a2b;color:#fff;font-weight:800;font-size:16px}.small{font-size:13px;color:#667085;line-height:1.55}.err{color:#b42318;line-height:1.6;word-break:break-word}
 </style>
 </head>
@@ -17,21 +17,21 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v31-mobile-20261015-1';
+  const version='v32-mobile-20261016-1';
   const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari דרך HTTPS, ולא כקובץ מתוך Files.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
+  async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
+  function injectPatch(html,patch,id){const css=String(patch.css||'').replace(/<\/style/gi,'<\\/style');const js=String(patch.js||'').replace(/<\/script/gi,'<\\/script');return html.replace('</head>',`<style id="${id}-css">${css}</style></head>`).replace('</body>',`<script id="${id}-js">${js}<\\/script></body>`)}
   try{
     if(!('DecompressionStream' in window))throw new Error('גרסת Safari אינה תומכת בטעינת הדמו. יש לעדכן את iOS/Safari לגרסה עדכנית.');
     const parts=[];
     for(const f of files){let r;try{r=await fetch(`${f}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${f}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${f}`);parts.push(await r.text())}
     let html=await gunzipB64(parts.join(''));
     if(!/^<!doctype html>/i.test(html))throw new Error('תוכן הדמו שהתקבל אינו תקין.');
-    let pr;try{pr=await fetch(`./v31-patch.txt?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את תיקוני המובייל: ${e?.message||'שגיאת רשת'}`)}
-    if(!pr.ok)throw new Error(`שגיאת HTTP ${pr.status} ב-v31-patch.txt`);
-    const patch=JSON.parse(await gunzipB64(await pr.text()));
-    const css=String(patch.css||'').replace(/<\/style/gi,'<\/style');
-    const js=String(patch.js||'').replace(/<\/script/gi,'<\/script');
-    html=html.replace('</head>',`<style id="v31-mobile-fixes">${css}</style></head>`).replace('</body>',`<script id="v31-mobile-fixes-js">${js}<\/script></body>`);
+    const v31=await loadPatch('./v31-patch.txt','תיקוני מובייל V31');
+    html=injectPatch(html,v31,'v31-mobile-fixes');
+    const v32=await loadPatch('./v32-patch.txt','תיקוני מובייל V32');
+    html=injectPatch(html,v32,'v32-mobile-fixes');
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
