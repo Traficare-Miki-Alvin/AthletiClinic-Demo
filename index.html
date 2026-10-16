@@ -17,13 +17,13 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v32-mobile-20261016-1';
-  const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari דרך HTTPS, ולא כקובץ מתוך Files.</p>`};
+  const version='v33-crossbrowser-20261016-1';
+  const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS, ולא כקובץ מתוך Files.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
   async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
   function injectPatch(html,patch,id){const css=String(patch.css||'').replace(/<\/style/gi,'<\\/style');const js=String(patch.js||'').replace(/<\/script/gi,'<\\/script');return html.replace('</head>',`<style id="${id}-css">${css}</style></head>`).replace('</body>',`<script id="${id}-js">${js}<\\/script></body>`)}
   try{
-    if(!('DecompressionStream' in window))throw new Error('גרסת Safari אינה תומכת בטעינת הדמו. יש לעדכן את iOS/Safari לגרסה עדכנית.');
+    if(!('DecompressionStream' in window))throw new Error('הדפדפן אינו תומך במנגנון הטעינה של הדמו. יש להשתמש בגרסה עדכנית של Safari או Chrome.');
     const parts=[];
     for(const f of files){let r;try{r=await fetch(`${f}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${f}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${f}`);parts.push(await r.text())}
     let html=await gunzipB64(parts.join(''));
@@ -32,6 +32,8 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
     html=injectPatch(html,v31,'v31-mobile-fixes');
     const v32=await loadPatch('./v32-patch.txt','תיקוני מובייל V32');
     html=injectPatch(html,v32,'v32-mobile-fixes');
+    const v33=await loadPatch('./v33-patch.txt','תיקוני Cross Browser V33');
+    html=injectPatch(html,v33,'v33-cross-browser');
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
