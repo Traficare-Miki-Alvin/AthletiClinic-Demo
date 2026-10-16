@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#111a24">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AthletiClinic</title>
 <style>
 html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827;-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -17,13 +18,18 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v33-crossbrowser-20261016-1';
-  const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS, ולא כקובץ מתוך Files.</p>`};
+  const version='v34-public-runtime-20261016-1';
+  const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
   async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
-  function injectPatch(html,patch,id){const css=String(patch.css||'').replace(/<\/style/gi,'<\\/style');const js=String(patch.js||'').replace(/<\/script/gi,'<\\/script');return html.replace('</head>',`<style id="${id}-css">${css}</style></head>`).replace('</body>',`<script id="${id}-js">${js}<\\/script></body>`)}
+  function injectPatch(html,patch,id){
+    const css=String(patch.css||''),js=String(patch.js||'');
+    const closeStyle='</sty'+'le>', closeScript='</scr'+'ipt>';
+    return html.replace('</head>',`<style id="${id}-css">${css}${closeStyle}</head>`).replace('</body>',`<script id="${id}-js">${js}${closeScript}</body>`);
+  }
   try{
-    if(!('DecompressionStream' in window))throw new Error('הדפדפן אינו תומך במנגנון הטעינה של הדמו. יש להשתמש בגרסה עדכנית של Safari או Chrome.');
+    if(!('DecompressionStream' in window))throw new Error('הדפדפן אינו תומך במנגנון הטעינה. יש להשתמש ב-Safari או Chrome עדכניים.');
+    try{navigator.serviceWorker?.getRegistrations?.().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{})}catch(_){ }
     const parts=[];
     for(const f of files){let r;try{r=await fetch(`${f}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${f}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${f}`);parts.push(await r.text())}
     let html=await gunzipB64(parts.join(''));
@@ -32,8 +38,8 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
     html=injectPatch(html,v31,'v31-mobile-fixes');
     const v32=await loadPatch('./v32-patch.txt','תיקוני מובייל V32');
     html=injectPatch(html,v32,'v32-mobile-fixes');
-    const v33=await loadPatch('./v33-patch.txt','תיקוני Cross Browser V33');
-    html=injectPatch(html,v33,'v33-cross-browser');
+    const v34=await loadPatch('./v34-patch.txt','תיקוני Runtime V34');
+    html=injectPatch(html,v34,'v34-runtime-fixes');
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
