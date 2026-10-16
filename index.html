@@ -18,7 +18,7 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v36-profile-avatars-20261016-1';
+  const version='v37-avatar-assets-20261016-1';
   const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
   async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
@@ -42,8 +42,24 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
     html=injectPatch(html,v34,'v34-runtime-fixes');
     const v35=await loadPatch('./v35-patch.txt','תיקוני מובייל V35');
     html=injectPatch(html,v35,'v35-mobile-polish');
-    const v36=await loadPatch('./v36-patch.txt','תמונות פרופיל V36');
-    html=injectPatch(html,v36,'v36-profile-avatars');
+    const avatarRuntime = String.raw`(async()=>{
+'use strict';
+const roleMap={
+ 'דניאל כהן':'patient_male','נועה לוי':'patient_female','רון אדרי':'patient_male','ליאור גפן':'patient_female',
+ 'יוסי ברק':'staff_male','מאיה שלו':'staff_female','עומר שחר':'staff_male','תומר בר':'staff_male'
+};
+let raw;try{const r=await fetch('./v37-avatars.json?${version}',{cache:'no-store'});if(!r.ok)return;raw=await r.json()}catch(_){return}
+const PHOTOS={};for(const [name,key] of Object.entries(roleMap)){const b64=raw[key];if(b64)PHOTOS[name]='data:image/jpeg;base64,'+b64}
+window.__ATHLETI_PROFILE_PHOTOS=PHOTOS;
+const selectors=['.client-person','.v27-trainer-head','.mobile-profile-row','.profile-hero','.patient-identity','.alert-main','.v32-data-card','.v34-data-card','.activity-row','.v25-trainer-card','.v24-form-card','.mobile-card','.side-foot','.team-card','.trainer-card'];
+function pick(t){t=String(t||'');for(const [n,s] of Object.entries(PHOTOS))if(t.includes(n))return s;return null}
+function styleImg(img,src){if(!img||!src)return;img.src=src;img.style.cssText+=';object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important;aspect-ratio:1/1!important;';}
+function applyContainer(c){const src=pick(c.textContent);if(!src)return;c.querySelectorAll('img').forEach(img=>{if(img.closest('.program-card,.exercise-card,.library-card,.v25-ex-card')||img.classList.contains('exercise-media'))return;styleImg(img,src)});c.querySelectorAll('.avatar').forEach(av=>{av.style.cssText+=';border-radius:50%!important;overflow:hidden!important;padding:0!important;aspect-ratio:1/1!important;';let im=av.querySelector('img');if(!im){im=document.createElement('img');av.replaceChildren(im)}styleImg(im,src)})}
+function apply(root=document){root.querySelectorAll?.(selectors.join(',')).forEach(applyContainer);root.querySelectorAll?.('img.portrait,img.v27-team-photo,.patient-identity img,.alert-main img').forEach(img=>{const host=img.closest('.profile-hero,.patient-identity,.alert-card,.v25-trainer-card,.mobile-card,.panel,.card')||img.parentElement;const src=pick(host&&host.textContent);if(src)styleImg(img,src)})}
+apply();let q=false;new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;apply()})}).observe(document.documentElement,{subtree:true,childList:true});
+window.__V37_AVATARS=true;
+})();`;
+    html=html.replace('</body>',`<script id="v37-avatar-runtime">${avatarRuntime}<\/script></body>`);
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
