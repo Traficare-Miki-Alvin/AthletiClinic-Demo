@@ -18,7 +18,7 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v35-mobile-polish-20261016-1';
+  const version='v36-profile-avatars-20261016-1';
   const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
   async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
@@ -42,6 +42,8 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
     html=injectPatch(html,v34,'v34-runtime-fixes');
     const v35=await loadPatch('./v35-patch.txt','תיקוני מובייל V35');
     html=injectPatch(html,v35,'v35-mobile-polish');
+    const v36=await loadPatch('./v36-patch.txt','תמונות פרופיל V36');
+    html=injectPatch(html,v36,'v36-profile-avatars');
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
