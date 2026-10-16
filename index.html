@@ -1,102 +1,20 @@
-<!doctype html>
-<html lang="he" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111a24">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>AthletiClinic</title>
-<style>
-html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-.loading{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;box-sizing:border-box}.box{background:#fff;border:1px solid #e6e9ee;border-radius:18px;padding:28px;max-width:440px;width:100%;box-sizing:border-box;box-shadow:0 10px 32px rgba(24,39,58,.08)}.spin{width:34px;height:34px;border:4px solid #eee;border-top-color:#f15a2b;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}@keyframes s{to{transform:rotate(360deg)}}button{border:0;border-radius:10px;padding:11px 18px;background:#f15a2b;color:#fff;font-weight:800;font-size:16px}.small{font-size:13px;color:#667085;line-height:1.55}.err{color:#b42318;line-height:1.6;word-break:break-word}
-</style>
-</head>
-<body>
-<div class="loading" id="loader"><div class="box"><div class="spin"></div><h2>טוען את AthletiClinic</h2><p>הדמו נטען. הטעינה הראשונה יכולה להימשך מספר שניות.</p><div id="err"></div></div></div>
-<script>
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111a24"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><title>AthletiClinic</title><style>html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f6f9;color:#111827}.loading{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;box-sizing:border-box}.box{background:#fff;border:1px solid #e6e9ee;border-radius:18px;padding:28px;max-width:440px;width:100%;box-sizing:border-box}.spin{width:34px;height:34px;border:4px solid #eee;border-top-color:#f15a2b;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}@keyframes s{to{transform:rotate(360deg)}}.err{color:#b42318}</style></head><body><div class="loading" id="loader"><div class="box"><div class="spin"></div><h2>טוען את AthletiClinic</h2><p>הדמו נטען. הטעינה הראשונה יכולה להימשך מספר שניות.</p><div id="err"></div></div></div><script>
 (async()=>{
-  const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v39-comprehensive-20261016-3';
-  const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS.</p>`};
-  async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
-  async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
-  function injectPatch(html,patch,id){
-    const css=String(patch.css||''),js=String(patch.js||'');
-    const closeStyle='</sty'+'le>', closeScript='</scr'+'ipt>';
-    return html.replace('</head>',`<style id="${id}-css">${css}${closeStyle}</head>`).replace('</body>',`<script id="${id}-js">${js}${closeScript}</body>`);
-  }
-  try{
-    if(!('DecompressionStream' in window))throw new Error('הדפדפן אינו תומך במנגנון הטעינה. יש להשתמש ב-Safari או Chrome עדכניים.');
-    try{navigator.serviceWorker?.getRegistrations?.().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{})}catch(_){ }
-    const parts=[];
-    for(const f of files){let r;try{r=await fetch(`${f}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${f}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${f}`);parts.push(await r.text())}
-    let html=await gunzipB64(parts.join(''));
-    if(!/^<!doctype html>/i.test(html))throw new Error('תוכן הדמו שהתקבל אינו תקין.');
-    const v31=await loadPatch('./v31-patch.txt','תיקוני מובייל V31');
-    html=injectPatch(html,v31,'v31-mobile-fixes');
-    const v32=await loadPatch('./v32-patch.txt','תיקוני מובייל V32');
-    html=injectPatch(html,v32,'v32-mobile-fixes');
-    const v34=await loadPatch('./v34-patch.txt','תיקוני Runtime V34');
-    html=injectPatch(html,v34,'v34-runtime-fixes');
-    const v35=await loadPatch('./v35-patch.txt','תיקוני מובייל V35');
-    html=injectPatch(html,v35,'v35-mobile-polish');
-    const avatarRuntime = String.raw`(async()=>{
-'use strict';
-const PHOTOS={};
-const patientFiles={
- 'דניאל כהן':'daniel','נועה לוי':'noa','רון אדרי':'ron','ליאור גפן':'lior'
-};
-for(const [name,key] of Object.entries(patientFiles)){
- try{const r=await fetch('./avatars/'+key+'.txt?${version}',{cache:'no-store'});if(r.ok){const b64=(await r.text()).replace(/\s+/g,'');if(b64)PHOTOS[name]='data:image/jpeg;base64,'+b64}}catch(_){ }
-}
+const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'],version='v41-deterministic-20261016-2';
+const photos={'דניאל כהן':`./avatars/daniel.svg?${version}`,'נועה לוי':`./avatars/noa.svg?${version}`,'רון אדרי':`./avatars/ron.svg?${version}`,'ליאור גפן':`./avatars/lior.svg?${version}`};
+const fail=m=>{const e=document.getElementById('err');if(e)e.innerHTML=`<p class="err">${m}</p><button onclick="location.reload()">נסה שוב</button>`};
+async function unzip(s){const b=atob(s.replace(/\s+/g,'')),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
+async function patch(p){const r=await fetch(`${p}?${version}`,{cache:'no-store'});if(!r.ok)throw Error(`${r.status} ${p}`);return JSON.parse(await unzip(await r.text()))}
+function inject(h,p,id){const cs='</sty'+'le>',js='</scr'+'ipt>';return h.replace('</head>',`<style id="${id}-css">${p.css||''}${cs}</head>`).replace('</body>',`<script id="${id}-js">${p.js||''}${js}</body>`)}
 try{
- const r=await fetch('./v37-avatars.json?${version}',{cache:'no-store'});
- if(r.ok){const raw=await r.json();
-  const staff={'יוסי ברק':'staff_male','מאיה שלו':'staff_female','עומר שחר':'staff_male','תומר בר':'staff_male'};
-  for(const [name,key] of Object.entries(staff)){if(raw[key])PHOTOS[name]='data:image/jpeg;base64,'+raw[key]}
- }
-}catch(_){ }
-window.__ATHLETI_PROFILE_PHOTOS=PHOTOS;
-const selectors=['.client-person','.v27-trainer-head','.mobile-profile-row','.profile-hero','.patient-identity','.alert-main','.v32-data-card','.v34-data-card','.activity-row','.v25-trainer-card','.v24-form-card','.mobile-card','.side-foot','.team-card','.trainer-card','.client-card','.patient-card','.result-card','.program-card-header'];
-function pick(t){t=String(t||'');for(const [n,s] of Object.entries(PHOTOS))if(t.includes(n))return s;return null}
-function styleImg(img,src){if(!img||!src)return;img.src=src;img.style.cssText+=';object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important;aspect-ratio:1/1!important;';}
-function applyContainer(c){const src=pick(c.textContent);if(!src)return;c.querySelectorAll('img').forEach(img=>{if(img.closest('.exercise-card,.library-card,.v25-ex-card')||img.classList.contains('exercise-media'))return;styleImg(img,src)});c.querySelectorAll('.avatar').forEach(av=>{av.style.cssText+=';border-radius:50%!important;overflow:hidden!important;padding:0!important;aspect-ratio:1/1!important;';let im=av.querySelector('img');if(!im){im=document.createElement('img');av.replaceChildren(im)}styleImg(im,src)})}
-function apply(root=document){root.querySelectorAll?.(selectors.join(',')).forEach(applyContainer);root.querySelectorAll?.('img.portrait,img.v27-team-photo,.patient-identity img,.alert-main img,.avatar img').forEach(img=>{const host=img.closest('.profile-hero,.patient-identity,.alert-card,.v25-trainer-card,.mobile-card,.panel,.card,.client-person,.v32-data-card,.v34-data-card')||img.parentElement;const src=pick(host&&host.textContent);if(src)styleImg(img,src)})}
-apply();let q=false;new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;apply()})}).observe(document.documentElement,{subtree:true,childList:true});
-window.__V38_AVATARS=true;
-})();`;
-    html=html.replace('</body>',`<script id="v38-avatar-runtime">${avatarRuntime}<\/script></body>`);
-    html=html.replace('</body>',`
-<style id="v39-comprehensive-css">
-.v39-person-avatar{object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important;aspect-ratio:1/1!important;background:#eef3f7!important;display:block!important}
-.avatar.v39-avatar-shell{border-radius:50%!important;overflow:hidden!important;padding:0!important;aspect-ratio:1/1!important;background:#eef3f7!important;display:grid!important;place-items:center!important}
-.avatar.v39-avatar-shell>img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important}
-.profile-actions .btn{justify-content:center!important;text-align:center!important}
-@media(max-width:600px){.profile-actions{width:100%!important;margin:12px 0 0!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;direction:rtl!important}.profile-actions .btn{width:100%!important;min-height:46px!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1.25!important}.profile-actions [data-v39-action="preview"]{grid-column:1/-1!important;grid-row:1!important;background:#fff7f3!important;border-color:#ffbda4!important;color:#c94718!important}.profile-actions [data-v39-action="edit"],.profile-actions [data-v39-action="update"]{grid-row:2!important}.profile-actions [data-v39-action="ask"],.profile-actions [data-v39-action="build"]{grid-row:3!important}.profile-actions [data-v39-action="more"]{grid-column:1/-1!important;grid-row:4!important;background:#fff!important;color:#344054!important;border:1px solid #d7dde5!important}}
-</style>
-<script id="v39-comprehensive-js">(()=>{
-'use strict';
-const PHOTOS={'דניאל כהן':'./avatars/daniel.svg?v=39','נועה לוי':'./avatars/noa.svg?v=39','רון אדרי':'./avatars/ron.svg?v=39','ליאור גפן':'./avatars/lior.svg?v=39'};
-window.__ATHLETI_PROFILE_PHOTOS={...(window.__ATHLETI_PROFILE_PHOTOS||{}),...PHOTOS};
-const NAMES=Object.keys(PHOTOS);
-function nameIn(t){t=String(t||'');return NAMES.find(n=>t.includes(n))||null}
-function isAvatarImg(img){if(!img)return false;const c=String(img.className||'');if(/portrait|avatar|team-photo|person-photo|profile-photo/i.test(c))return true;try{const cs=getComputedStyle(img),w=parseFloat(cs.width)||img.width||0,h=parseFloat(cs.height)||img.height||0,br=parseFloat(cs.borderRadius)||0;return w>0&&h>0&&w<=140&&h<=140&&(br>=Math.min(w,h)*.3)}catch(e){return false}}
-function styleImg(img,src,name){if(!img||!src)return;img.dataset.v39Name=name;img.src=src;img.classList.add('v39-person-avatar');img.style.objectFit='cover';img.style.objectPosition='50% 42%';img.style.borderRadius='50%';img.style.aspectRatio='1 / 1'}
-function shellAvatar(av,src,name){if(!av||!src)return;av.classList.add('v39-avatar-shell');let im=av.querySelector(':scope > img');if(!im){im=document.createElement('img');im.alt=name;av.replaceChildren(im)}styleImg(im,src,name)}
-function applyContainer(c,name){const src=PHOTOS[name];if(!c||!src)return;c.querySelectorAll('img').forEach(img=>{if(img.closest('.exercise-card,.library-card,.v25-ex-card,.program-card')&&!isAvatarImg(img))return;if(isAvatarImg(img))styleImg(img,src,name)});c.querySelectorAll('.avatar').forEach(av=>{if(!av.closest('.activity-icon'))shellAvatar(av,src,name)})}
-function applyPeople(root=document){const sel='.client-person,.patient-identity,.profile-hero,.alert-main,.mobile-profile-row,.v32-data-card,.v34-data-card,.patient-card,.client-card,.result-card,.activity-row,.alert-card,.card,.panel';root.querySelectorAll?.(sel).forEach(c=>{const n=nameIn(c.textContent);if(n)applyContainer(c,n)});root.querySelectorAll?.('img[alt],img[title]').forEach(img=>{const n=nameIn((img.alt||'')+' '+(img.title||''));if(n&&isAvatarImg(img))styleImg(img,PHOTOS[n],n)});for(const n of NAMES){root.querySelectorAll?.('body *').forEach(el=>{if(el.children.length===0&&String(el.textContent||'').includes(n)){let c=el;for(let i=0;i<7&&c;i++,c=c.parentElement){if(c.querySelector&&([...c.querySelectorAll('img')].some(isAvatarImg)||c.querySelector('.avatar'))){applyContainer(c,n);break}}}})}}
-function normalizeActions(){const actions=document.querySelector('.profile-actions');if(!actions)return;const btns=[...actions.querySelectorAll(':scope > button,.btn')].filter(b=>b.closest('.profile-actions')===actions);if(!btns.length)return;let more=btns.find(b=>['...','⋯','…'].includes(b.textContent.trim())||b.textContent.includes('פעולות נוספות'));if(more){more.textContent='פעולות נוספות';more.dataset.v39Action='more'}const find=(type,pred)=>{const b=btns.find(pred);if(b)b.dataset.v39Action=type;return b};const preview=find('preview',b=>/תצוגת\s*(?:ה)?מטופל/.test(b.textContent));if(preview)preview.textContent='תצוגת המטופל';const edit=find('edit',b=>b.textContent.trim()==='עריכה');const update=find('update',b=>b.textContent.includes('שליחת עדכון'));const ask=find('ask',b=>b.textContent.includes('שאל את הבינה'));const build=find('build',b=>b.textContent.includes('בנה תוכנית'));const known=[preview,edit,update,ask,build].filter(Boolean),extras=btns.filter(b=>!known.includes(b)&&b!==more);[...known,...extras,...(more?[more]:[])].forEach(b=>actions.appendChild(b))}
-let lastHero=null;function resetProfileTopIfNew(){const hero=document.querySelector('.profile-hero.v23,.profile-hero');if(hero&&hero!==lastHero){lastHero=hero;const reset=()=>{try{window.scrollTo({top:0,left:0,behavior:'auto'})}catch(e){window.scrollTo(0,0)};document.documentElement.scrollTop=0;document.body.scrollTop=0;document.querySelectorAll('.main,#content,.app-main').forEach(x=>{try{x.scrollTop=0}catch(e){}})};reset();requestAnimationFrame(reset);setTimeout(reset,50);setTimeout(reset,180)}if(!hero)lastHero=null}
-function sweep(){applyPeople();normalizeActions();resetProfileTopIfNew()}
-sweep();let q=false;new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;sweep()})}).observe(document.documentElement,{subtree:true,childList:true});
-try{if(typeof window.renderPatient==='function'&&!window.renderPatient.__v39){const old=window.renderPatient;const w=function(...a){const r=old.apply(this,a);lastHero=null;setTimeout(sweep,0);return r};w.__v39=true;window.renderPatient=w}}catch(e){}
-window.__V39_READY=true;
-})();<\/script></body>`);
-    document.open();document.write(html);document.close();
-  }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
+if(!('DecompressionStream'in window))throw Error('יש להשתמש ב-Safari או Chrome עדכניים.');
+try{navigator.serviceWorker?.getRegistrations?.().then(x=>x.forEach(r=>r.unregister()))}catch(_){ }
+await Promise.all(Object.values(photos).map(s=>new Promise(ok=>{const i=new Image;i.onload=i.onerror=ok;i.src=s})));
+try{const r=await fetch(`./v37-avatars.json?${version}`,{cache:'no-store'});if(r.ok){const j=await r.json(),m={'יוסי ברק':'staff_male','מאיה שלו':'staff_female','עומר שחר':'staff_male','תומר בר':'staff_male'};for(const[n,k]of Object.entries(m))if(j[k])photos[n]='data:image/jpeg;base64,'+j[k]}}catch(_){ }
+const a=[];for(const f of files){const r=await fetch(`${f}?${version}`,{cache:'no-store'});if(!r.ok)throw Error(`${r.status} ${f}`);a.push(await r.text())}let h=await unzip(a.join(''));
+for(const [f,id] of [['./v31-patch.txt','v31-mobile-fixes'],['./v32-patch.txt','v32-mobile-fixes'],['./v34-patch.txt','v34-runtime-fixes'],['./v35-patch.txt','v35-mobile-polish']])h=inject(h,await patch(f),id);
+const map=`<script>window.__ATHLETI_PROFILE_PHOTOS=${JSON.stringify(photos)};<\/script>`;h=h.replace('<body>','<body>'+map).replace("function v23Portrait(name){return name==='דניאל כהן'?V23_IMG.avatar:V23_IMG.therapist}","function v23Portrait(name){return (window.__ATHLETI_PROFILE_PHOTOS&&window.__ATHLETI_PROFILE_PHOTOS[name])||(name==='דניאל כהן'?V23_IMG.avatar:V23_IMG.therapist)}");
+const fr=await fetch(`./v41-fix.js?${version}`,{cache:'no-store'});if(!fr.ok)throw Error(`${fr.status} v41-fix.js`);const fix=await fr.text(),cs='</scr'+'ipt>';h=h.replace('</body>',`<script id="v41-fix">${fix}${cs}</body>`);document.open();document.write(h);document.close();
+}catch(e){console.error(e);fail(e?.message||'לא ניתן לטעון את הדמו')}
 })();
-</script>
-</body>
-</html>
+</script></body></html>
