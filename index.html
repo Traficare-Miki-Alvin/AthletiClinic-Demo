@@ -18,7 +18,7 @@ html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,
 <script>
 (async()=>{
   const files=['./payload/p01.txt','./payload/p02.txt','./payload/p03.txt','./payload/p04.txt','./payload/p05.txt','./payload/p06.txt','./payload/p07.txt','./payload/p08.txt','./payload/p09.txt','./payload/p10.txt','./payload/p11.txt','./payload/p12a.txt','./payload/p12-02.txt','./payload/p12-03.txt','./payload/p12d.txt','./payload/p13.txt'];
-  const version='v38-unique-patient-avatars-20261016-2';
+  const version='v39-comprehensive-20261016-3';
   const fail=msg=>{const el=document.getElementById('err');if(el)el.innerHTML=`<p class="err">${msg}</p><button onclick="location.reload()">נסה שוב</button><p class="small">יש לפתוח את הכתובת ב-Safari או Chrome דרך HTTPS.</p>`};
   async function gunzipB64(b64){const bin=atob(b64.replace(/\s+/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
   async function loadPatch(path,label){let r;try{r=await fetch(`${path}?${version}`,{cache:'no-store'})}catch(e){throw new Error(`לא ניתן לטעון את ${label}: ${e?.message||'שגיאת רשת'}`)}if(!r.ok)throw new Error(`שגיאת HTTP ${r.status} ב-${path}`);return JSON.parse(await gunzipB64(await r.text()))}
@@ -68,6 +68,32 @@ apply();let q=false;new MutationObserver(()=>{if(q)return;q=true;requestAnimatio
 window.__V38_AVATARS=true;
 })();`;
     html=html.replace('</body>',`<script id="v38-avatar-runtime">${avatarRuntime}<\/script></body>`);
+    html=html.replace('</body>',`
+<style id="v39-comprehensive-css">
+.v39-person-avatar{object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important;aspect-ratio:1/1!important;background:#eef3f7!important;display:block!important}
+.avatar.v39-avatar-shell{border-radius:50%!important;overflow:hidden!important;padding:0!important;aspect-ratio:1/1!important;background:#eef3f7!important;display:grid!important;place-items:center!important}
+.avatar.v39-avatar-shell>img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 42%!important;border-radius:50%!important}
+.profile-actions .btn{justify-content:center!important;text-align:center!important}
+@media(max-width:600px){.profile-actions{width:100%!important;margin:12px 0 0!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;direction:rtl!important}.profile-actions .btn{width:100%!important;min-height:46px!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1.25!important}.profile-actions [data-v39-action="preview"]{grid-column:1/-1!important;grid-row:1!important;background:#fff7f3!important;border-color:#ffbda4!important;color:#c94718!important}.profile-actions [data-v39-action="edit"],.profile-actions [data-v39-action="update"]{grid-row:2!important}.profile-actions [data-v39-action="ask"],.profile-actions [data-v39-action="build"]{grid-row:3!important}.profile-actions [data-v39-action="more"]{grid-column:1/-1!important;grid-row:4!important;background:#fff!important;color:#344054!important;border:1px solid #d7dde5!important}}
+</style>
+<script id="v39-comprehensive-js">(()=>{
+'use strict';
+const PHOTOS={'דניאל כהן':'./avatars/daniel.svg?v=39','נועה לוי':'./avatars/noa.svg?v=39','רון אדרי':'./avatars/ron.svg?v=39','ליאור גפן':'./avatars/lior.svg?v=39'};
+window.__ATHLETI_PROFILE_PHOTOS={...(window.__ATHLETI_PROFILE_PHOTOS||{}),...PHOTOS};
+const NAMES=Object.keys(PHOTOS);
+function nameIn(t){t=String(t||'');return NAMES.find(n=>t.includes(n))||null}
+function isAvatarImg(img){if(!img)return false;const c=String(img.className||'');if(/portrait|avatar|team-photo|person-photo|profile-photo/i.test(c))return true;try{const cs=getComputedStyle(img),w=parseFloat(cs.width)||img.width||0,h=parseFloat(cs.height)||img.height||0,br=parseFloat(cs.borderRadius)||0;return w>0&&h>0&&w<=140&&h<=140&&(br>=Math.min(w,h)*.3)}catch(e){return false}}
+function styleImg(img,src,name){if(!img||!src)return;img.dataset.v39Name=name;img.src=src;img.classList.add('v39-person-avatar');img.style.objectFit='cover';img.style.objectPosition='50% 42%';img.style.borderRadius='50%';img.style.aspectRatio='1 / 1'}
+function shellAvatar(av,src,name){if(!av||!src)return;av.classList.add('v39-avatar-shell');let im=av.querySelector(':scope > img');if(!im){im=document.createElement('img');im.alt=name;av.replaceChildren(im)}styleImg(im,src,name)}
+function applyContainer(c,name){const src=PHOTOS[name];if(!c||!src)return;c.querySelectorAll('img').forEach(img=>{if(img.closest('.exercise-card,.library-card,.v25-ex-card,.program-card')&&!isAvatarImg(img))return;if(isAvatarImg(img))styleImg(img,src,name)});c.querySelectorAll('.avatar').forEach(av=>{if(!av.closest('.activity-icon'))shellAvatar(av,src,name)})}
+function applyPeople(root=document){const sel='.client-person,.patient-identity,.profile-hero,.alert-main,.mobile-profile-row,.v32-data-card,.v34-data-card,.patient-card,.client-card,.result-card,.activity-row,.alert-card,.card,.panel';root.querySelectorAll?.(sel).forEach(c=>{const n=nameIn(c.textContent);if(n)applyContainer(c,n)});root.querySelectorAll?.('img[alt],img[title]').forEach(img=>{const n=nameIn((img.alt||'')+' '+(img.title||''));if(n&&isAvatarImg(img))styleImg(img,PHOTOS[n],n)});for(const n of NAMES){root.querySelectorAll?.('body *').forEach(el=>{if(el.children.length===0&&String(el.textContent||'').includes(n)){let c=el;for(let i=0;i<7&&c;i++,c=c.parentElement){if(c.querySelector&&([...c.querySelectorAll('img')].some(isAvatarImg)||c.querySelector('.avatar'))){applyContainer(c,n);break}}}})}}
+function normalizeActions(){const actions=document.querySelector('.profile-actions');if(!actions)return;const btns=[...actions.querySelectorAll(':scope > button,.btn')].filter(b=>b.closest('.profile-actions')===actions);if(!btns.length)return;let more=btns.find(b=>['...','⋯','…'].includes(b.textContent.trim())||b.textContent.includes('פעולות נוספות'));if(more){more.textContent='פעולות נוספות';more.dataset.v39Action='more'}const find=(type,pred)=>{const b=btns.find(pred);if(b)b.dataset.v39Action=type;return b};const preview=find('preview',b=>/תצוגת\s*(?:ה)?מטופל/.test(b.textContent));if(preview)preview.textContent='תצוגת המטופל';const edit=find('edit',b=>b.textContent.trim()==='עריכה');const update=find('update',b=>b.textContent.includes('שליחת עדכון'));const ask=find('ask',b=>b.textContent.includes('שאל את הבינה'));const build=find('build',b=>b.textContent.includes('בנה תוכנית'));const known=[preview,edit,update,ask,build].filter(Boolean),extras=btns.filter(b=>!known.includes(b)&&b!==more);[...known,...extras,...(more?[more]:[])].forEach(b=>actions.appendChild(b))}
+let lastHero=null;function resetProfileTopIfNew(){const hero=document.querySelector('.profile-hero.v23,.profile-hero');if(hero&&hero!==lastHero){lastHero=hero;const reset=()=>{try{window.scrollTo({top:0,left:0,behavior:'auto'})}catch(e){window.scrollTo(0,0)};document.documentElement.scrollTop=0;document.body.scrollTop=0;document.querySelectorAll('.main,#content,.app-main').forEach(x=>{try{x.scrollTop=0}catch(e){}})};reset();requestAnimationFrame(reset);setTimeout(reset,50);setTimeout(reset,180)}if(!hero)lastHero=null}
+function sweep(){applyPeople();normalizeActions();resetProfileTopIfNew()}
+sweep();let q=false;new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;sweep()})}).observe(document.documentElement,{subtree:true,childList:true});
+try{if(typeof window.renderPatient==='function'&&!window.renderPatient.__v39){const old=window.renderPatient;const w=function(...a){const r=old.apply(this,a);lastHero=null;setTimeout(sweep,0);return r};w.__v39=true;window.renderPatient=w}}catch(e){}
+window.__V39_READY=true;
+})();<\/script></body>`);
     document.open();document.write(html);document.close();
   }catch(err){console.error(err);fail(err?.message||'לא ניתן היה לטעון את הדמו.');}
 })();
